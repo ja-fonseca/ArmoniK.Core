@@ -42,7 +42,7 @@ using Serilog.Formatting.Compact;
 
 namespace ArmoniK.Core.Control.Submitter;
 
-public static class Program
+public class Program
 {
   public static int Main(string[] args)
   {
@@ -68,6 +68,8 @@ public static class Program
 
       var logger = LoggerFactory.Create(loggingBuilder => loggingBuilder.AddSerilog(Log.Logger))
                                 .CreateLogger("root");
+
+      builder.Logging.AddSerilog(Log.Logger);
 
       builder.Host
              .UseSerilog(Log.Logger);

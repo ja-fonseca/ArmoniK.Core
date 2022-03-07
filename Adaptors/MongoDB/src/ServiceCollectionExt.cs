@@ -89,8 +89,7 @@ public static class ServiceCollectionExt
     if (components["ObjectStorage"] == "ArmoniK.Adapters.MongoDB.ObjectStorage")
       services.AddOption<Options.ObjectStorage>(configuration,
                                                 Options.ObjectStorage.SettingSection)
-              .AddTransient<ObjectStorage>()
-              .AddTransient<IObjectStorage, ObjectStorage>();
+              .AddTransient<IObjectStorageFactory, ObjectStorageFactory>();
 
     services.AddOption<Options.MongoDB>(configuration,
                                         Options.MongoDB.SettingSection,

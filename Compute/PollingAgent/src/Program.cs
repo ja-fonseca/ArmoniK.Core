@@ -46,7 +46,7 @@ using Serilog.Formatting.Compact;
 
 namespace ArmoniK.Core.Compute.PollingAgent;
 
-public static class Program
+public class Program
 {
   public static int Main(string[] args)
   {
