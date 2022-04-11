@@ -22,6 +22,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+using System;
+
 using JetBrains.Annotations;
 
 namespace ArmoniK.Core.Adapters.Amqp.Options;
@@ -31,13 +33,15 @@ public class Amqp
 {
   public const string SettingSection = nameof(Amqp);
 
-  public string Host              { get; set; }
-  public string CredentialsPath   { get; set; }
-  public string User              { get; set; }
-  public string Password          { get; set; }
-  public string Scheme            { get; set; }
-  public string CaPath            { get; set; }
-  public int    Port              { get; set; }
-  public int    MaxPriority       { get; set; }
-  public bool   AllowHostMismatch { get; set; }
+  public string   Host               { get; set; }
+  public string   CredentialsPath    { get; set; }
+  public string   User               { get; set; }
+  public string   Password           { get; set; }
+  public string   Scheme             { get; set; }
+  public string   CaPath             { get; set; }
+  public int      Port               { get; set; }
+  public int      MaxPriority        { get; set; }
+  public bool     AllowHostMismatch  { get; set; }
+  public TimeSpan PollPeriodicityMin { get; set; } = TimeSpan.FromMilliseconds(100);
+  public TimeSpan PollPeriodicityMax { get; set; } = TimeSpan.FromSeconds(15);
 }

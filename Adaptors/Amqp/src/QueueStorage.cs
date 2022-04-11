@@ -86,8 +86,10 @@ public class QueueStorage : IQueueStorage
     }
 
 
-    MaxPriority = options.MaxPriority;
-    logger_     = logger;
+    MaxPriority        = options.MaxPriority;
+    pollPeriodicityMin_ = options.PollPeriodicityMin;
+    pollPeriodicityMax_ = options.PollPeriodicityMax;
+    logger_            = logger;
 
     var nbLinks = (MaxPriority + MaxInternalQueuePriority - 1) / MaxInternalQueuePriority;
 
@@ -107,6 +109,10 @@ public class QueueStorage : IQueueStorage
                                                                                                   $"q{i}")))
                            .ToArray();
   }
+
+  private TimeSpan pollPeriodicityMax_;
+
+  private TimeSpan pollPeriodicityMin_;
 
   /// <inheritdoc />
   public async Task Init(CancellationToken cancellationToken)
@@ -136,6 +142,7 @@ public class QueueStorage : IQueueStorage
     using var _               = logger_.LogFunction();
     var       nbPulledMessage = 0;
 
+    var currentPollDelay = pollPeriodicityMin_;
     while (nbPulledMessage < nbMessages)
     {
       var currentNbMessages = nbPulledMessage;
@@ -143,7 +150,7 @@ public class QueueStorage : IQueueStorage
       {
         cancellationToken.ThrowIfCancellationRequested();
         var receiver = await receivers_[i];
-        var message = await receiver.ReceiveAsync(TimeSpan.FromMilliseconds(100))
+        var message = await receiver.ReceiveAsync(currentPollDelay)
                                     .ConfigureAwait(false);
         if (message is null)
         {
@@ -161,12 +168,18 @@ public class QueueStorage : IQueueStorage
                                              logger_,
                                              cancellationToken);
 
+        currentPollDelay = pollPeriodicityMin_;
         break;
       }
 
       if (nbPulledMessage == currentNbMessages)
       {
         break;
+      }
+
+      if (2 * currentPollDelay < pollPeriodicityMax_)
+      {
+        currentPollDelay = 2 * currentPollDelay;
       }
     }
   }
