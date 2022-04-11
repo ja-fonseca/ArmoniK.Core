@@ -51,6 +51,10 @@ public class QueueStorage : IQueueStorage
 
   private bool isInitialized_;
 
+  private readonly TimeSpan pollPeriodicityMax_;
+
+  private readonly TimeSpan pollPeriodicityMin_;
+
   public QueueStorage(Options.Amqp          options,
                       SessionProvider       sessionProvider,
                       ILogger<QueueStorage> logger)
@@ -86,10 +90,10 @@ public class QueueStorage : IQueueStorage
     }
 
 
-    MaxPriority        = options.MaxPriority;
+    MaxPriority         = options.MaxPriority;
     pollPeriodicityMin_ = options.PollPeriodicityMin;
     pollPeriodicityMax_ = options.PollPeriodicityMax;
-    logger_            = logger;
+    logger_             = logger;
 
     var nbLinks = (MaxPriority + MaxInternalQueuePriority - 1) / MaxInternalQueuePriority;
 
@@ -109,10 +113,6 @@ public class QueueStorage : IQueueStorage
                                                                                                   $"q{i}")))
                            .ToArray();
   }
-
-  private TimeSpan pollPeriodicityMax_;
-
-  private TimeSpan pollPeriodicityMin_;
 
   /// <inheritdoc />
   public async Task Init(CancellationToken cancellationToken)
@@ -139,10 +139,9 @@ public class QueueStorage : IQueueStorage
   public async IAsyncEnumerable<IQueueMessageHandler> PullAsync(int                                        nbMessages,
                                                                 [EnumeratorCancellation] CancellationToken cancellationToken = default)
   {
-    using var _               = logger_.LogFunction();
-    var       nbPulledMessage = 0;
-
-    var currentPollDelay = pollPeriodicityMin_;
+    using var _                = logger_.LogFunction();
+    var       nbPulledMessage  = 0;
+    var       currentPollDelay = pollPeriodicityMin_;
     while (nbPulledMessage < nbMessages)
     {
       var currentNbMessages = nbPulledMessage;
@@ -161,10 +160,11 @@ public class QueueStorage : IQueueStorage
 
         nbPulledMessage++;
 
+        var body = message.Body as byte[] ?? throw new InvalidOperationException("Error while deserializing message");
         yield return new QueueMessageHandler(message,
                                              await senders_[i],
                                              receiver,
-                                             Encoding.UTF8.GetString(message.Body as byte[] ?? throw new InvalidOperationException("Error while deserializing message")),
+                                             Encoding.UTF8.GetString(body),
                                              logger_,
                                              cancellationToken);
 
